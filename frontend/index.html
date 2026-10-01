@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Execution App</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>Execution App</h1>
+        <p>Notice → Counter → Execute → Learn → Re-execute</p>
+    </header>
+
+
+    <!-- =====================================================
+         DASHBOARD SUMMARY
+    ====================================================== -->
+
+    <section class="dashboard">
+
+        <div class="stat-card positive">
+            <h3>Positive</h3>
+            <span id="positive-count">0</span>
+        </div>
+
+        <div class="stat-card pattern">
+            <h3>Patterns</h3>
+            <span id="pattern-count">0</span>
+        </div>
+
+        <div class="stat-card growth">
+            <h3>Growth</h3>
+            <span id="growth-count">0</span>
+        </div>
+
+        <div class="stat-card next">
+            <h3>Pending</h3>
+            <span id="pending-count">0</span>
+        </div>
+
+        <div class="stat-card completed">
+            <h3>Completed</h3>
+            <span id="completed-count">0</span>
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         NEXT EXECUTION
+    ====================================================== -->
+
+    <section class="main-section">
+
+        <h2>🔵 Next Execution</h2>
+
+        <div id="next-execution-container">
+
+            <p>Loading next execution...</p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         POSITIVE EXECUTIONS
+    ====================================================== -->
+
+    <section class="main-section">
+
+        <div class="section-header">
+
+            <h2>🟢 Positive Executions</h2>
+
+            <button onclick="showForm('positive-form')">
+                + Add Positive Execution
+            </button>
+
+        </div>
+
+
+        <div id="positive-form" class="form-container hidden">
+
+            <input
+                type="text"
+                id="positive-title"
+                placeholder="Title"
+            >
+
+            <textarea
+                id="positive-what"
+                placeholder="What did I do?"
+            ></textarea>
+
+            <input
+                type="text"
+                id="positive-pattern"
+                placeholder="Old pattern defeated"
+            >
+
+            <input
+                type="text"
+                id="positive-worked"
+                placeholder="What worked?"
+            >
+
+            <button onclick="createPositiveExecution()">
+                Save
+            </button>
+
+        </div>
+
+
+        <div id="positive-list">
+
+            <p>Loading...</p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         OLD PATTERNS
+    ====================================================== -->
+
+    <section class="main-section">
+
+        <div class="section-header">
+
+            <h2>🔴 Old Patterns</h2>
+
+            <button onclick="showForm('pattern-form')">
+                + Add Pattern
+            </button>
+
+        </div>
+
+
+        <div id="pattern-form" class="form-container hidden">
+
+            <input
+                type="text"
+                id="pattern-old"
+                placeholder="Old pattern"
+            >
+
+            <textarea
+                id="pattern-counter"
+                placeholder="Counter thought"
+            ></textarea>
+
+            <textarea
+                id="pattern-response"
+                placeholder="My response"
+            ></textarea>
+
+            <input
+                type="text"
+                id="pattern-next"
+                placeholder="Next execution"
+            >
+
+            <button onclick="createPattern()">
+                Save
+            </button>
+
+        </div>
+
+
+        <div id="pattern-list">
+
+            <p>Loading...</p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         GROWTH EXECUTIONS
+    ====================================================== -->
+
+    <section class="main-section">
+
+        <div class="section-header">
+
+            <h2>🟣 Growth Executions</h2>
+
+            <button onclick="showForm('growth-form')">
+                + Add Growth Execution
+            </button>
+
+        </div>
+
+
+        <div id="growth-form" class="form-container hidden">
+
+            <input
+                type="text"
+                id="growth-title"
+                placeholder="What new thing did I try?"
+            >
+
+            <textarea
+                id="growth-why"
+                placeholder="Why do I want to try this?"
+            ></textarea>
+
+            <textarea
+                id="growth-action"
+                placeholder="What action will I take?"
+            ></textarea>
+
+            <textarea
+                id="growth-experience"
+                placeholder="What was the experience?"
+            ></textarea>
+
+            <textarea
+                id="growth-learned"
+                placeholder="What did I learn?"
+            ></textarea>
+
+            <label>
+
+                <input
+                    type="checkbox"
+                    id="growth-repeat"
+                >
+
+                Would I repeat this?
+
+            </label>
+
+            <input
+                type="text"
+                id="growth-next"
+                placeholder="Next growth execution"
+            >
+
+            <button onclick="createGrowthExecution()">
+                Save
+            </button>
+
+        </div>
+
+
+        <div id="growth-list">
+
+            <p>Loading...</p>
+
+        </div>
+
+    </section>
+
+
+    <script src="app.js"></script>
+
+</body>
+</html>
