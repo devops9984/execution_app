@@ -4,6 +4,8 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 
+
+# Load environment variables from .env
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -13,12 +15,21 @@ def get_connection():
     if not DATABASE_URL:
         raise RuntimeError("DATABASE_URL is not configured")
 
-    return psycopg2.connect(DATABASE_URL)
+    connection = psycopg2.connect(
+        DATABASE_URL
+    )
+
+    return connection
 
 
 def create_tables():
+
     connection = get_connection()
     cursor = connection.cursor()
+
+    # =========================================================
+    # 1. POSITIVE EXECUTIONS
+    # =========================================================
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS positive_executions (
@@ -31,6 +42,11 @@ def create_tables():
         )
     """)
 
+
+    # =========================================================
+    # 2. OLD PATTERNS
+    # =========================================================
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS patterns (
             id SERIAL PRIMARY KEY,
@@ -41,6 +57,11 @@ def create_tables():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+
+
+    # =========================================================
+    # 3. GROWTH EXECUTIONS
+    # =========================================================
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS growth_executions (
@@ -56,6 +77,11 @@ def create_tables():
         )
     """)
 
+
+    # =========================================================
+    # 4. NEXT / RE-EXECUTIONS
+    # =========================================================
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS next_executions (
             id SERIAL PRIMARY KEY,
@@ -68,6 +94,7 @@ def create_tables():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+
 
     connection.commit()
 
