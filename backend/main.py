@@ -5,16 +5,16 @@ from pydantic import BaseModel
 from database import create_tables, get_connection, get_dict_cursor
 
 
-# ============================================================
+# =========================================================
 # APP
-# ============================================================
+# =========================================================
 
 app = FastAPI(title="Execution App")
 
 
-# ============================================================
+# =========================================================
 # CORS
-# ============================================================
+# =========================================================
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,16 +25,16 @@ app.add_middleware(
 )
 
 
-# ============================================================
+# =========================================================
 # CREATE DATABASE TABLES
-# ============================================================
+# =========================================================
 
 create_tables()
 
 
-# ============================================================
-# PYDANTIC MODELS
-# ============================================================
+# =========================================================
+# DATA MODELS
+# =========================================================
 
 class PositiveExecution(BaseModel):
     title: str
@@ -67,9 +67,9 @@ class NextExecution(BaseModel):
     reason: str | None = None
 
 
-# ============================================================
+# =========================================================
 # HOME
-# ============================================================
+# =========================================================
 
 @app.get("/")
 def home():
@@ -79,9 +79,9 @@ def home():
     }
 
 
-# ============================================================
+# =========================================================
 # HEALTH
-# ============================================================
+# =========================================================
 
 @app.get("/health")
 def health():
@@ -90,9 +90,9 @@ def health():
     }
 
 
-# ============================================================
+# =========================================================
 # POSITIVE EXECUTIONS
-# ============================================================
+# =========================================================
 
 @app.post("/positive-executions")
 def create_positive_execution(execution: PositiveExecution):
@@ -131,7 +131,13 @@ def create_positive_execution(execution: PositiveExecution):
             "id": execution_id
         }
 
+    except Exception:
+
+        connection.rollback()
+        raise
+
     finally:
+
         cursor.close()
         connection.close()
 
@@ -157,13 +163,14 @@ def get_positive_executions():
         return executions
 
     finally:
+
         cursor.close()
         connection.close()
 
 
-# ============================================================
+# =========================================================
 # PATTERNS
-# ============================================================
+# =========================================================
 
 @app.post("/patterns")
 def create_pattern(pattern: Pattern):
@@ -172,6 +179,10 @@ def create_pattern(pattern: Pattern):
     cursor = connection.cursor()
 
     try:
+
+        # -------------------------------------------------
+        # 1. SAVE PATTERN
+        # -------------------------------------------------
 
         cursor.execute(
             """
@@ -195,14 +206,66 @@ def create_pattern(pattern: Pattern):
 
         pattern_id = cursor.fetchone()[0]
 
+
+        # -------------------------------------------------
+        # 2. AUTOMATICALLY CREATE NEXT EXECUTION
+        # -------------------------------------------------
+
+        if (
+            pattern.next_execution
+            and pattern.next_execution.strip()
+        ):
+
+            cursor.execute(
+                """
+                INSERT INTO next_executions
+                (
+                    execution_type,
+                    source_id,
+                    action,
+                    reason,
+                    status
+                )
+                VALUES (%s, %s, %s, %s, 'pending')
+                RETURNING id
+                """,
+                (
+                    "pattern",
+                    pattern_id,
+                    pattern.next_execution,
+                    "Next execution from pattern interruption"
+                )
+            )
+
+            next_execution_id = cursor.fetchone()[0]
+
+        else:
+
+            next_execution_id = None
+
+
+        # -------------------------------------------------
+        # 3. COMMIT
+        # -------------------------------------------------
+
         connection.commit()
+
 
         return {
             "message": "Pattern created successfully",
-            "id": pattern_id
+            "id": pattern_id,
+            "next_execution_id": next_execution_id
         }
 
+
+    except Exception:
+
+        connection.rollback()
+        raise
+
+
     finally:
+
         cursor.close()
         connection.close()
 
@@ -228,13 +291,14 @@ def get_patterns():
         return patterns
 
     finally:
+
         cursor.close()
         connection.close()
 
 
-# ============================================================
+# =========================================================
 # GROWTH EXECUTIONS
-# ============================================================
+# =========================================================
 
 @app.post("/growth-executions")
 def create_growth_execution(execution: GrowthExecution):
@@ -243,6 +307,10 @@ def create_growth_execution(execution: GrowthExecution):
     cursor = connection.cursor()
 
     try:
+
+        # -------------------------------------------------
+        # 1. SAVE GROWTH EXECUTION
+        # -------------------------------------------------
 
         cursor.execute(
             """
@@ -272,14 +340,66 @@ def create_growth_execution(execution: GrowthExecution):
 
         execution_id = cursor.fetchone()[0]
 
+
+        # -------------------------------------------------
+        # 2. AUTOMATICALLY CREATE NEXT GROWTH EXECUTION
+        # -------------------------------------------------
+
+        if (
+            execution.next_growth_execution
+            and execution.next_growth_execution.strip()
+        ):
+
+            cursor.execute(
+                """
+                INSERT INTO next_executions
+                (
+                    execution_type,
+                    source_id,
+                    action,
+                    reason,
+                    status
+                )
+                VALUES (%s, %s, %s, %s, 'pending')
+                RETURNING id
+                """,
+                (
+                    "growth",
+                    execution_id,
+                    execution.next_growth_execution,
+                    "Next execution from growth execution"
+                )
+            )
+
+            next_execution_id = cursor.fetchone()[0]
+
+        else:
+
+            next_execution_id = None
+
+
+        # -------------------------------------------------
+        # 3. COMMIT
+        # -------------------------------------------------
+
         connection.commit()
+
 
         return {
             "message": "Growth execution created successfully",
-            "id": execution_id
+            "id": execution_id,
+            "next_execution_id": next_execution_id
         }
 
+
+    except Exception:
+
+        connection.rollback()
+        raise
+
+
     finally:
+
         cursor.close()
         connection.close()
 
@@ -305,13 +425,14 @@ def get_growth_executions():
         return executions
 
     finally:
+
         cursor.close()
         connection.close()
 
 
-# ============================================================
+# =========================================================
 # NEXT EXECUTIONS
-# ============================================================
+# =========================================================
 
 @app.post("/next-executions")
 def create_next_execution(execution: NextExecution):
@@ -351,7 +472,13 @@ def create_next_execution(execution: NextExecution):
             "id": execution_id
         }
 
+    except Exception:
+
+        connection.rollback()
+        raise
+
     finally:
+
         cursor.close()
         connection.close()
 
@@ -377,13 +504,14 @@ def get_next_executions():
         return executions
 
     finally:
+
         cursor.close()
         connection.close()
 
 
-# ============================================================
+# =========================================================
 # PENDING NEXT EXECUTIONS
-# ============================================================
+# =========================================================
 
 @app.get("/next-executions/pending")
 def get_pending_executions():
@@ -407,13 +535,14 @@ def get_pending_executions():
         return executions
 
     finally:
+
         cursor.close()
         connection.close()
 
 
-# ============================================================
+# =========================================================
 # COMPLETE NEXT EXECUTION
-# ============================================================
+# =========================================================
 
 @app.put("/next-executions/{execution_id}/complete")
 def complete_execution(execution_id: int):
@@ -422,6 +551,10 @@ def complete_execution(execution_id: int):
     cursor = connection.cursor()
 
     try:
+
+        # -------------------------------------------------
+        # CHECK EXECUTION EXISTS
+        # -------------------------------------------------
 
         cursor.execute(
             """
@@ -434,12 +567,18 @@ def complete_execution(execution_id: int):
 
         execution = cursor.fetchone()
 
+
         if execution is None:
 
             raise HTTPException(
                 status_code=404,
                 detail="Execution not found"
             )
+
+
+        # -------------------------------------------------
+        # MARK AS COMPLETED
+        # -------------------------------------------------
 
         cursor.execute(
             """
@@ -452,21 +591,37 @@ def complete_execution(execution_id: int):
             (execution_id,)
         )
 
+
         connection.commit()
+
 
         return {
             "message": "Execution completed successfully",
             "id": execution_id
         }
 
+
+    except HTTPException:
+
+        connection.rollback()
+        raise
+
+
+    except Exception:
+
+        connection.rollback()
+        raise
+
+
     finally:
+
         cursor.close()
         connection.close()
 
 
-# ============================================================
+# =========================================================
 # DELETE NEXT EXECUTION
-# ============================================================
+# =========================================================
 
 @app.delete("/next-executions/{execution_id}")
 def delete_next_execution(execution_id: int):
@@ -475,6 +630,10 @@ def delete_next_execution(execution_id: int):
     cursor = connection.cursor()
 
     try:
+
+        # -------------------------------------------------
+        # CHECK EXECUTION EXISTS
+        # -------------------------------------------------
 
         cursor.execute(
             """
@@ -487,12 +646,18 @@ def delete_next_execution(execution_id: int):
 
         execution = cursor.fetchone()
 
+
         if execution is None:
 
             raise HTTPException(
                 status_code=404,
                 detail="Execution not found"
             )
+
+
+        # -------------------------------------------------
+        # DELETE
+        # -------------------------------------------------
 
         cursor.execute(
             """
@@ -502,21 +667,37 @@ def delete_next_execution(execution_id: int):
             (execution_id,)
         )
 
+
         connection.commit()
+
 
         return {
             "message": "Next execution deleted successfully",
             "id": execution_id
         }
 
+
+    except HTTPException:
+
+        connection.rollback()
+        raise
+
+
+    except Exception:
+
+        connection.rollback()
+        raise
+
+
     finally:
+
         cursor.close()
         connection.close()
 
 
-# ============================================================
+# =========================================================
 # DASHBOARD
-# ============================================================
+# =========================================================
 
 @app.get("/dashboard")
 def dashboard():
@@ -526,7 +707,10 @@ def dashboard():
 
     try:
 
-        # Positive executions
+        # -------------------------------------------------
+        # POSITIVE COUNT
+        # -------------------------------------------------
+
         cursor.execute(
             """
             SELECT COUNT(*)
@@ -537,7 +721,10 @@ def dashboard():
         positive_count = cursor.fetchone()[0]
 
 
-        # Patterns
+        # -------------------------------------------------
+        # PATTERN COUNT
+        # -------------------------------------------------
+
         cursor.execute(
             """
             SELECT COUNT(*)
@@ -548,7 +735,10 @@ def dashboard():
         pattern_count = cursor.fetchone()[0]
 
 
-        # Growth executions
+        # -------------------------------------------------
+        # GROWTH COUNT
+        # -------------------------------------------------
+
         cursor.execute(
             """
             SELECT COUNT(*)
@@ -559,7 +749,10 @@ def dashboard():
         growth_count = cursor.fetchone()[0]
 
 
-        # Pending executions
+        # -------------------------------------------------
+        # PENDING COUNT
+        # -------------------------------------------------
+
         cursor.execute(
             """
             SELECT COUNT(*)
@@ -571,7 +764,10 @@ def dashboard():
         pending_count = cursor.fetchone()[0]
 
 
-        # Completed executions
+        # -------------------------------------------------
+        # COMPLETED COUNT
+        # -------------------------------------------------
+
         cursor.execute(
             """
             SELECT COUNT(*)
@@ -583,6 +779,10 @@ def dashboard():
         completed_count = cursor.fetchone()[0]
 
 
+        # -------------------------------------------------
+        # RETURN DASHBOARD
+        # -------------------------------------------------
+
         return {
             "positive_executions": positive_count,
             "patterns": pattern_count,
@@ -591,6 +791,8 @@ def dashboard():
             "completed_executions": completed_count
         }
 
+
     finally:
+
         cursor.close()
         connection.close()
